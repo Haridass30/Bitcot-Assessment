@@ -1,0 +1,13 @@
+# Build context for graphql-server/Dockerfile is the repository root.
+**/node_modules
+**/dist
+**/coverage
+**/*.log
+**/.env
+**/.env.*
+!**/.env.example
+.git
+.github
+frontend
+graphql-server/tests
+*.md

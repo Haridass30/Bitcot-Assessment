@@ -1,0 +1,71 @@
+# Sample operations for Apollo Sandbox (http://localhost:4000/graphql).
+# Paste this whole file into the Operation panel, pick an operation to run,
+# and copy the matching JSON from the "Variables" comment into the Variables panel.
+
+fragment EmployeeFields on Employee {
+  id
+  name
+  email
+  department
+  designation
+  joiningDate
+  status
+  createdAt
+  updatedAt
+}
+
+# --- Queries -----------------------------------------------------------------
+
+query ListEmployees {
+  employees {
+    ...EmployeeFields
+  }
+}
+
+# Variables: { "filter": { "search": "an", "department": "Engineering" } }
+query SearchEmployees($filter: EmployeeFilter) {
+  employees(filter: $filter) {
+    id
+    name
+    department
+    status
+  }
+}
+
+# Variables: { "id": "1" }
+query GetEmployee($id: ID!) {
+  employee(id: $id) {
+    ...EmployeeFields
+  }
+}
+
+# --- Mutations ---------------------------------------------------------------
+
+# Variables:
+# {
+#   "input": {
+#     "name": "Neha Gupta",
+#     "email": "neha.gupta@bitcot.example",
+#     "department": "Engineering",
+#     "designation": "Site Reliability Engineer",
+#     "joiningDate": "2025-02-03",
+#     "status": "ACTIVE"
+#   }
+# }
+mutation CreateEmployee($input: CreateEmployeeInput!) {
+  createEmployee(input: $input) {
+    ...EmployeeFields
+  }
+}
+
+# Variables: { "id": "1", "input": { "designation": "Staff Engineer", "status": "ON_LEAVE" } }
+mutation UpdateEmployee($id: ID!, $input: UpdateEmployeeInput!) {
+  updateEmployee(id: $id, input: $input) {
+    ...EmployeeFields
+  }
+}
+
+# Variables: { "id": "1" }
+mutation DeleteEmployee($id: ID!) {
+  deleteEmployee(id: $id)
+}

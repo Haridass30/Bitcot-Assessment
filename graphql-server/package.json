@@ -1,0 +1,44 @@
+{
+  "name": "employee-graphql-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Apollo GraphQL API for the Employee Management System",
+  "type": "module",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "db:migrate": "tsx src/scripts/migrate.ts",
+    "db:seed": "tsx src/scripts/migrate.ts --seed",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@apollo/server": "^5.5.2",
+    "@as-integrations/express5": "^1.1.2",
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "graphql": "^16.15.0",
+    "mysql2": "^3.24.6"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^20.19.43",
+    "@types/supertest": "^6.0.3",
+    "supertest": "^7.3.2",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.12"
+  },
+  "overrides": {
+    "@graphql-tools/utils": "12.0.4"
+  }
+}
