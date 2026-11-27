@@ -21,3 +21,10 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# AWS SAM generated files
+.aws-sam/
+**/.aws-sam/
+
+# Local activity logs
+.activity-logs/

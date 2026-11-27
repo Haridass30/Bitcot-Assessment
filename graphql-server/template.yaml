@@ -1,0 +1,243 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Bitcot employee operations using AWS Lambda, API Gateway and private RDS
+
+Parameters:
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet::Id
+    Description: First private subnet in ap-south-2
+
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet::Id
+    Description: Second private subnet in ap-south-2
+
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Security group allowing Lambda to connect to RDS
+
+Globals:
+  Function:
+    Runtime: nodejs22.x
+    Architectures:
+      - x86_64
+    Timeout: 15
+    MemorySize: 256
+    VpcConfig:
+      SecurityGroupIds:
+        - !Ref LambdaSecurityGroup
+      SubnetIds:
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+
+Resources:
+  EmployeeApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      CorsConfiguration:
+        AllowOrigins:
+          - https://dgdhj3bzpez0s.cloudfront.net
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        AllowHeaders:
+          - content-type
+          - authorization
+
+  ListEmployeesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+      Environment:
+        Variables:
+          NODE_ENV: production
+          DB_HOST: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_HOST}}'
+          DB_PORT: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_PORT}}'
+          DB_USER: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_USER}}'
+          DB_PASSWORD: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_PASSWORD}}'
+          DB_NAME: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_NAME}}'
+          DB_CONNECTION_LIMIT: '1'
+          DB_SSL: 'false'
+      FunctionName: bitcot-list-employees
+      CodeUri: ./
+      Handler: listEmployees.handler
+      Events:
+        ListEmployees:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref EmployeeApi
+            Path: /employees
+            Method: GET
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints:
+          - src/lambda/listEmployees.ts
+        Bundle: true
+        Minify: true
+        Target: es2022
+        Format: cjs
+
+  GetEmployeeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+      Environment:
+        Variables:
+          NODE_ENV: production
+          DB_HOST: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_HOST}}'
+          DB_PORT: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_PORT}}'
+          DB_USER: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_USER}}'
+          DB_PASSWORD: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_PASSWORD}}'
+          DB_NAME: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_NAME}}'
+          DB_CONNECTION_LIMIT: '1'
+          DB_SSL: 'false'
+      FunctionName: bitcot-get-employee
+      CodeUri: ./
+      Handler: getEmployee.handler
+      Events:
+        GetEmployee:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref EmployeeApi
+            Path: /employees/{id}
+            Method: GET
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints:
+          - src/lambda/getEmployee.ts
+        Bundle: true
+        Minify: true
+        Target: es2022
+        Format: cjs
+
+  CreateEmployeeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+      Environment:
+        Variables:
+          NODE_ENV: production
+          DB_HOST: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_HOST}}'
+          DB_PORT: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_PORT}}'
+          DB_USER: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_USER}}'
+          DB_PASSWORD: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_PASSWORD}}'
+          DB_NAME: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_NAME}}'
+          DB_CONNECTION_LIMIT: '1'
+          DB_SSL: 'false'
+      FunctionName: bitcot-create-employee
+      CodeUri: ./
+      Handler: createEmployee.handler
+      Events:
+        CreateEmployee:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref EmployeeApi
+            Path: /employees
+            Method: POST
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints:
+          - src/lambda/createEmployee.ts
+        Bundle: true
+        Minify: true
+        Target: es2022
+        Format: cjs
+
+  UpdateEmployeeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+      Environment:
+        Variables:
+          NODE_ENV: production
+          DB_HOST: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_HOST}}'
+          DB_PORT: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_PORT}}'
+          DB_USER: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_USER}}'
+          DB_PASSWORD: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_PASSWORD}}'
+          DB_NAME: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_NAME}}'
+          DB_CONNECTION_LIMIT: '1'
+          DB_SSL: 'false'
+      FunctionName: bitcot-update-employee
+      CodeUri: ./
+      Handler: updateEmployee.handler
+      Events:
+        UpdateEmployee:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref EmployeeApi
+            Path: /employees/{id}
+            Method: PUT
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints:
+          - src/lambda/updateEmployee.ts
+        Bundle: true
+        Minify: true
+        Target: es2022
+        Format: cjs
+
+  DeleteEmployeeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+      Environment:
+        Variables:
+          NODE_ENV: production
+          DB_HOST: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_HOST}}'
+          DB_PORT: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_PORT}}'
+          DB_USER: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_USER}}'
+          DB_PASSWORD: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_PASSWORD}}'
+          DB_NAME: '{{resolve:secretsmanager:bitcot-assessment/db-credentials:SecretString:DB_NAME}}'
+          DB_CONNECTION_LIMIT: '1'
+          DB_SSL: 'false'
+      FunctionName: bitcot-delete-employee
+      CodeUri: ./
+      Handler: deleteEmployee.handler
+      Events:
+        DeleteEmployee:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref EmployeeApi
+            Path: /employees/{id}
+            Method: DELETE
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        EntryPoints:
+          - src/lambda/deleteEmployee.ts
+        Bundle: true
+        Minify: true
+        Target: es2022
+        Format: cjs
+
+Outputs:
+  EmployeeApiUrl:
+    Description: Employee Lambda HTTP API endpoint
+    Value: !Sub 'https://${EmployeeApi}.execute-api.${AWS::Region}.amazonaws.com'
+
+  ListEmployeesFunctionArn:
+    Value: !GetAtt ListEmployeesFunction.Arn
+
+  GetEmployeeFunctionArn:
+    Value: !GetAtt GetEmployeeFunction.Arn
+
+  CreateEmployeeFunctionArn:
+    Value: !GetAtt CreateEmployeeFunction.Arn
+
+  UpdateEmployeeFunctionArn:
+    Value: !GetAtt UpdateEmployeeFunction.Arn
+
+  DeleteEmployeeFunctionArn:
+    Value: !GetAtt DeleteEmployeeFunction.Arn
